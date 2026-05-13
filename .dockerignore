@@ -1,0 +1,7 @@
+.git
+.gitignore
+Dockerfile
+OASIS_Colab.ipynb
+tmp_OASIS_*
+filtered_accessions_*.txt
+sequences_*_OASIS_*.fasta

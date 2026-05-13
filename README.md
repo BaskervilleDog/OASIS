@@ -38,6 +38,44 @@ Simply execute the script. It will guide you through an interactive menu:
 ./OASIS.sh
 ```
 
+### Running with Docker
+You can also build a lightweight multi-stage image with the NCBI tools prepared during the build stage. Run the build command from inside the `OASIS` project folder, where the `Dockerfile` and `OASIS.sh` files are located:
+
+```bash
+cd OASIS
+docker build -t oasis .
+```
+
+Run it interactively and mount the current directory so the generated files are written back to your workspace:
+
+```bash
+docker run --rm -it -v "$PWD:/data" oasis
+```
+
+The container uses `/data` as the working directory, so the output files listed below will appear in the mounted folder.
+You can stop the interactive pipeline at any time with `Ctrl+C`.
+
+After building, Docker may keep the base images used by the multi-stage build (`alpine:3.20` and `debian:bookworm-slim`) as local cache. Keeping them is fine and makes future builds faster, but you can optionally remove them to save disk space:
+
+```bash
+docker rmi alpine:3.20 debian:bookworm-slim
+```
+
+### Running with Singularity/Apptainer
+After the Docker image is published to Docker Hub, you can pull it with Singularity or Apptainer and run it interactively:
+
+```bash
+singularity pull oasis.sif docker://rodrigoorvate/oasis:latest
+singularity run --bind "$PWD:/data" oasis.sif
+```
+
+If your system uses Apptainer, the equivalent commands are:
+
+```bash
+apptainer pull oasis.sif docker://rodrigoorvate/oasis:latest
+apptainer run --bind "$PWD:/data" oasis.sif
+```
+
 ---
 
 ## 🛠️ Usage Example
