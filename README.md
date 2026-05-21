@@ -64,13 +64,7 @@ docker build -t oasis .
 Or just:
 
 ```bash
-docker pull rodrigoorvate/oasis
-```
-
-Run it interactively and mount the current directory so the generated files are written back to your workspace:
-
-```bash
-docker run --rm -it -v "$PWD:/data" rodrigoorvate/oasis
+docker run --rm -it --pull always -v "$PWD:/data" rodrigoorvate/oasis
 ```
 
 The container uses `/data` as the working directory, so the output files listed below will appear in the mounted folder. You can stop the interactive pipeline at any time with `Ctrl+C`.
