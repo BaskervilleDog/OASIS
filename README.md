@@ -61,11 +61,22 @@ You can also build a lightweight multi-stage image with the NCBI tools prepared 
 cd OASIS
 docker build -t oasis .
 ```
+Or just:
+
+```bash
+docker pull rodrigoorvate/oasis
+```
 
 Run it interactively and mount the current directory so the generated files are written back to your workspace:
 
 ```bash
-docker run --rm -it -v "$PWD:/data" oasis
+docker run --rm -it -v "$PWD:/data" rodrigoorvate/oasis
+```
+
+Or if you prefer to run it directly with the ID:
+
+```bash
+docker run --rm -it -v "$PWD:/data" rodrigoorvate/oasis <ID>
 ```
 
 The container uses `/data` as the working directory, so the output files listed below will appear in the mounted folder. You can stop the interactive pipeline at any time with `Ctrl+C`.
