@@ -73,12 +73,6 @@ Run it interactively and mount the current directory so the generated files are 
 docker run --rm -it -v "$PWD:/data" rodrigoorvate/oasis
 ```
 
-Or if you prefer to run it directly with the ID:
-
-```bash
-docker run --rm -it -v "$PWD:/data" rodrigoorvate/oasis <ID>
-```
-
 The container uses `/data` as the working directory, so the output files listed below will appear in the mounted folder. You can stop the interactive pipeline at any time with `Ctrl+C`.
 
 After building, Docker may keep the base images used by the multi-stage build (`alpine:3.20` and `debian:bookworm-slim`) as local cache. Keeping them is fine and makes future builds faster, but you can optionally remove them to save disk space:
