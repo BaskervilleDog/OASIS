@@ -1,5 +1,5 @@
 #!/bin/bash
- 
+
 # --- 0. Smart Dependency Handlers (Rootless/Sudo-Free) ---
 download_file() {
     local url="$1"
@@ -13,7 +13,7 @@ download_file() {
         exit 1
     fi
 }
- 
+
 download_text() {
     local url="$1"
     if command -v curl &> /dev/null; then
@@ -22,7 +22,7 @@ download_text() {
         wget -q -O - "$url"
     fi
 }
- 
+
 extract_zip() {
     local zip_file="$1"
     local dest_dir="$2"
@@ -35,19 +35,19 @@ extract_zip() {
         exit 1
     fi
 }
- 
+
 # --- 1. Path Configuration (Centralized in HOME) ---
 BLAST_DIR="$HOME/ncbi-blast-2.13.0+/bin"
 DATASETS_PATH="$HOME/datasets"
 export PATH="$BLAST_DIR:$HOME:$PATH"
- 
+
 install_tools() {
     if [ ! -f "$DATASETS_PATH" ]; then
         echo "📦 Downloading and installing datasets in $HOME..."
         download_file 'https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets' "$DATASETS_PATH"
         chmod +x "$DATASETS_PATH"
     fi
- 
+
     if [ ! -d "$BLAST_DIR" ]; then
         echo "🛰️ Starting download of static binaries (Version 2.13.0)..."
         download_file 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.13.0/ncbi-blast-2.13.0+-x64-linux.tar.gz' "$HOME/blast.tar.gz"
@@ -55,11 +55,11 @@ install_tools() {
         rm "$HOME/blast.tar.gz"
     fi
 }
- 
+
 # --- 2. Interactive Menu (OASIS) ---
 cat <<'OASIS_BANNER'
 =============================================================
- 
+
      *******         **        ********   **    ********
     **/////**       ****      **//////   /**   **////// 
    **     //**     **//**    /**         /**  /**       
@@ -68,8 +68,8 @@ cat <<'OASIS_BANNER'
   //**     **   /**//////**         /**  /**         /**
    //*******    /**     /**   ********   /**   ******** 
     ///////     //      //   ////////    //   //////// 
- 
- 
+
+
     ⠀⠀⠉⠓⢦⣄⡀⠀⠉⠙⠲⢼⣧⡉⠙⠲⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠈⠙⠳⣤⡀⠀⢀⠈⠙⠲⣄⣄⠙⢦⣴⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠳⣌⡓⢤⡀⠈⠉⢣⠀⠻⠈⢷⠀⠀⢀⣀⣠⣤⣤⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -98,48 +98,69 @@ cat <<'OASIS_BANNER'
     EvoMol - LAboratório de Evolução Molecular e Sistemas
 =============================================================
 OASIS_BANNER
- 
-read -p "🧬 Enter the Accession ID (e.g., NP_001416352.1 or NM_001429423.1): " ID
-read -p "🔬 Is the query a [P]rotein or [N]ucleotide? (p/n): " MOL_TYPE
- 
-# --- 3. Input Validation (Sanity Checks) ---
+
+# --- 3. Input Collection (CLI args or interactive) ---
+# Usage: ./OASIS.sh [ACCESSION_ID] [p|n] [MIN_IDENTITY] [MIN_SIMILARITY]
+# If arguments are omitted, OASIS will prompt interactively for each missing value.
+
+if [ -n "$1" ]; then
+    ID="$1"
+    echo "🧬 Accession ID: $ID"
+else
+    read -p "🧬 Enter the Accession ID (e.g., NP_001416352.1 or NM_001429423.1): " ID
+fi
+
+if [ -n "$2" ]; then
+    MOL_TYPE="$2"
+    echo "🔬 Molecule type: $MOL_TYPE"
+else
+    read -p "🔬 Is the query a [P]rotein or [N]ucleotide? (p/n): " MOL_TYPE
+fi
+
+# --- 4. Input Validation (Sanity Checks) ---
 if [[ "$ID" == NP_* || "$ID" == XP_* ]] && [[ "$MOL_TYPE" =~ ^[Nn]$ ]]; then
     echo "⚠️  Warning: You entered a PROTEIN ID ($ID) but selected [N]ucleotide."
     echo "❌ Please check if you chose the wrong option or entered the wrong Accession ID."
     exit 1
 fi
- 
+
 if [[ "$ID" == NM_* || "$ID" == XM_* ]] && [[ "$MOL_TYPE" =~ ^[Pp]$ ]]; then
     echo "⚠️  Warning: You entered a NUCLEOTIDE ID ($ID) but selected [P]rotein."
     echo "❌ Please check if you chose the wrong option or entered the wrong Accession ID."
     exit 1
 fi
- 
-read -p "📊 Enter the minimum Identity and Similarity desired (e.g., 90 95): " MIN_ID MIN_SIM
- 
+
+if [ -n "$3" ] && [ -n "$4" ]; then
+    MIN_ID="$3"
+    MIN_SIM="$4"
+    echo "📊 Identity threshold: ${MIN_ID}% | Similarity threshold: ${MIN_SIM}%"
+else
+    read -p "📊 Enter the minimum Identity and Similarity desired (e.g., 90 95): " MIN_ID MIN_SIM
+fi
+
 install_tools
- 
+
 # --- 4. Output & Temporary Directory Setup ---
 # Create a named output folder for this run, organized by Accession ID
 OUTPUT_DIR="${ID}"
 mkdir -p "$OUTPUT_DIR"
- 
+
 FINAL_LIST="${OUTPUT_DIR}/filtered_accessions_ID${MIN_ID}_SIM${MIN_SIM}_${ID}.txt"
- 
+
 # We created a unique temporary folder for this execution based on the process ID and PID ($$)
 TMP_DIR="tmp_OASIS_${ID}_$$"
 mkdir -p "$TMP_DIR"
- 
+
 # The 'trap' ensures that TMP_DIR will be deleted at the end, even if the script fails or is canceled.
 trap 'rm -rf "$TMP_DIR"' EXIT
- 
+
 echo "📁 Output files will be saved to: ./${OUTPUT_DIR}/"
- 
+
 echo -e "\n🔍 Fetching sequences and orthologs from NCBI for ID: $ID..."
- 
+
 # Determining Program and Fetching Query Sequence based on molecule type
 FASTA_QUERY="$TMP_DIR/query_${ID}.fasta"
- 
+
 if [[ "$MOL_TYPE" =~ ^[Nn]$ ]]; then
     BLAST_PROG="blastx"
     download_text "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=${ID}&rettype=fasta&retmode=text" > "$FASTA_QUERY"
@@ -147,19 +168,19 @@ else
     BLAST_PROG="blastp"
     download_text "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&id=${ID}&rettype=fasta&retmode=text" > "$FASTA_QUERY"
 fi
- 
+
 # Fetching Orthologs into temp directory
 "$DATASETS_PATH" download gene accession "$ID" --ortholog all --include protein --filename "$TMP_DIR/ortho.zip" > /dev/null 2>&1
- 
+
 if [ ! -s "$TMP_DIR/ortho.zip" ]; then
     echo "❌ Critical Error: Could not download ortholog package."
     echo "💡 Note: The NCBI Datasets tool does not support UniProt IDs. Please use a valid NCBI RefSeq ID (NP_, XP_, NM_, XM_)."
     exit 1
 fi
- 
+
 extract_zip "$TMP_DIR/ortho.zip" "$TMP_DIR/ortho_temp"
 ORTHO_FAA=$(find "$TMP_DIR/ortho_temp" -name "protein.faa" | head -n 1)
- 
+
 # --- 5. BLAST Processing ---
 if [ -f "$ORTHO_FAA" ] && [ -f "$FASTA_QUERY" ]; then
     echo "⚙️ Configuring local database and running alignments using $BLAST_PROG..."
@@ -179,11 +200,11 @@ else
     echo "❌ Critical Error: Could not locate the required FASTA files after extraction."
     exit 1
 fi
- 
+
 # --- 6. Protein FASTA Extraction ---
 echo "----------------------------------------------------"
 read -p "📥 Do you want to extract the protein FASTA file for these $COUNT sequences? (y/n): " DOWNLOAD_FASTA
- 
+
 if [[ "$DOWNLOAD_FASTA" =~ ^[YySs]$ ]]; then
     FASTA_FINAL="${OUTPUT_DIR}/sequences_PROT_OASIS_${ID}.fasta"
     echo "🚀 Extracting proteins from the local database..."
@@ -197,11 +218,11 @@ if [[ "$DOWNLOAD_FASTA" =~ ^[YySs]$ ]]; then
 else
     echo "🛑 Protein extraction skipped."
 fi
- 
+
 # --- 7. Nucleotide FASTA (CDS) Download ---
 echo "----------------------------------------------------"
 read -p "🧬 Do you want to download the nucleotide sequences (CDS) for these orthologs? (y/n): " DOWNLOAD_CDS
- 
+
 if [[ "$DOWNLOAD_CDS" =~ ^[YySs]$ ]]; then
     CDS_FINAL="${OUTPUT_DIR}/sequences_CDS_OASIS_${ID}.fasta"
     echo "🚀 Downloading gene packages via NCBI Datasets to extract CDS..."
@@ -220,10 +241,10 @@ if [[ "$DOWNLOAD_CDS" =~ ^[YySs]$ ]]; then
 else
     echo "🛑 CDS download skipped."
 fi
- 
+
 # --- 8. Summary ---
 # We no longer need the manual 'rm -rf' at the end because the 'trap' configured above will handle the automatic cleanup!
- 
+
 echo "===================================================="
 echo "🏁 OASIS Pipeline finished successfully."
 echo "📁 All output files are saved in: ./${OUTPUT_DIR}/"

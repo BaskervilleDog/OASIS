@@ -42,6 +42,17 @@ Simply execute the script. It will guide you through an interactive menu:
 ./OASIS.sh
 ```
 
+You can also pass all parameters directly as arguments to skip the interactive prompts — useful when running via Docker or in automated workflows:
+
+```bash
+./OASIS.sh <ACCESSION_ID> <p|n> <MIN_IDENTITY> <MIN_SIMILARITY>
+
+# Example:
+./OASIS.sh NP_001416352.1 p 90 95
+```
+
+Arguments are optional and positional — you can pass only some of them and OASIS will prompt interactively for any missing values.
+
 ### Running with Docker
 
 You can also build a lightweight multi-stage image with the NCBI tools prepared during the build stage. Run the build command from inside the `OASIS` project folder, where the `Dockerfile` and `OASIS.sh` files are located:
