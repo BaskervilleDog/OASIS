@@ -156,20 +156,6 @@ OASIS relies on `ncbi-datasets-cli`, which only accepts **NCBI RefSeq accessions
 
 ---
 
-## 🔄 Upcoming NCBI Infrastructure Changes (August 2026)
-
-> **This section is relevant for users and developers who depend on NCBI data retrieval services.**
-
-NCBI has announced significant changes to its data distribution services scheduled for **August 2026**. While the primary announcement concerns the [PMC Article Dataset Distribution Services](https://ncbiinsights.ncbi.nlm.nih.gov/2026/02/12/pmc-article-dataset-distribution-services/), broader changes to NCBI's E-utilities and FTP-based access (including `efetch` via CLI) may also affect automated pipelines.
-
-**What this means for OASIS:**
-
-The current version uses NCBI E-utilities (`efetch`) to download the query sequence. If access to `efetch` via command-line is deprecated or restricted after August 2026, this step may fail silently or return errors.
-
-**OASIS will be updated** to replace `efetch` with a fully `ncbi-datasets-cli`-based retrieval workflow as the August 2026 deadline approaches, ensuring uninterrupted functionality. Watch this repository for updates.
-
----
-
 ## 🗺️ TODO / Roadmap
 
 The following improvements are planned for future versions of OASIS:
