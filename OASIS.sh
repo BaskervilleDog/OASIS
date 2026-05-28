@@ -286,8 +286,7 @@ except Exception:
 # --- 4. Ortholog fetcher ---
 #
 # Downloads ALL ortholog proteins for a given NCBI Gene ID using the
-# Datasets CLI (--ortholog all). The REST-API paginated approach is kept
-# as a fallback comment; the CLI is used here for reliability.
+# Datasets CLI (--ortholog all). The orthologs are only available for vertebrates and insects
 # Deduplication of headers is done with awk after concatenation.
 
 fetch_all_orthologs() {
@@ -445,7 +444,7 @@ extract_cds_fasta() {
 
     > "$out_fasta"
 
-    local batch_size=100
+    local batch_size=200
 
     split -l $batch_size "$acclist" "${GLOBAL_TMP}/cds_batch_"
 
